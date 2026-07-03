@@ -1,0 +1,2285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BundleCraft — File Converter</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --bg-hover: #30363d;
+            --border-color: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-muted: #484f58;
+            --accent: #58a6ff;
+            --accent-hover: #79b8ff;
+            --success: #3fb950;
+            --warning: #d29922;
+            --danger: #f85149;
+            --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --radius: 6px;
+            --shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f6f8fa;
+            --bg-tertiary: #eaeef2;
+            --bg-hover: #d0d7de;
+            --border-color: #d0d7de;
+            --text-primary: #24292f;
+            --text-secondary: #57606a;
+            --text-muted: #8c959f;
+            --accent: #0969da;
+            --accent-hover: #0550ae;
+            --success: #1a7f37;
+            --warning: #9a6700;
+            --danger: #cf222e;
+            --shadow: 0 8px 24px rgba(31,35,40,0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-tertiary);
+            border-radius: 5px;
+            border: 2px solid var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--bg-hover);
+        }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            transition: transform 0.3s ease, background 0.3s;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+        }
+
+        .sidebar-title {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .sidebar-subtitle {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-section {
+            padding: 16px 12px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 0 12px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 14px;
+            transition: all 0.2s;
+            margin-bottom: 2px;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .nav-icon {
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-size: 13px;
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-radius: var(--radius);
+            background: var(--bg-tertiary);
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            font-size: 13px;
+            color: var(--text-secondary);
+            width: 100%;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--accent);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-bar {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-title .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 13px;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            opacity: 0.9;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 32px;
+            flex: 1;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: border-color 0.2s;
+        }
+
+        .card:hover {
+            border-color: var(--bg-hover);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-desc {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        /* Drop Zone */
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius);
+            padding: 40px;
+            text-align: center;
+            background: var(--bg-primary);
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(88, 166, 255, 0.05);
+        }
+
+        .drop-zone.dragover {
+            transform: scale(1.01);
+        }
+
+        .drop-zone-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+            opacity: 0.6;
+        }
+
+        .drop-zone-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .drop-zone-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .file-input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* File List */
+        .file-list {
+            margin-top: 16px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+        }
+
+        .file-item-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-html { background: rgba(227, 76, 38, 0.15); color: #e34c26; }
+        .badge-css { background: rgba(38, 77, 228, 0.15); color: #264de4; }
+        .badge-js { background: rgba(240, 219, 79, 0.15); color: #f0db4f; }
+        [data-theme="light"] .badge-js { color: #9a8b00; }
+        .badge-other { background: var(--bg-hover); color: var(--text-secondary); }
+
+        .file-size {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        .file-remove {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .file-remove:hover {
+            color: var(--danger);
+            background: rgba(248, 81, 73, 0.1);
+        }
+
+        /* Code Blocks */
+        .code-block {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-top: 16px;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .code-lang {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+        }
+
+        .code-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .code-body {
+            padding: 16px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .code-body pre {
+            margin: 0;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* Terminal Output */
+        .terminal {
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            overflow: hidden;
+            font-family: var(--font-mono);
+            margin-top: 16px;
+        }
+
+        [data-theme="light"] .terminal {
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+
+        .terminal-header {
+            background: var(--bg-tertiary);
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .t-red { background: #ff5f56; }
+        .t-yellow { background: #ffbd2e; }
+        .t-green { background: #27c93f; }
+
+        .terminal-title {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-left: 8px;
+        }
+
+        .terminal-body {
+            padding: 16px;
+            font-size: 13px;
+            line-height: 1.8;
+            max-height: 300px;
+            overflow-y: auto;
+            color: #c9d1d9;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .log-time {
+            color: #6e7681;
+            min-width: 70px;
+        }
+
+        .log-info { color: #58a6ff; }
+        .log-success { color: #3fb950; }
+        .log-warning { color: #d29922; }
+        .log-error { color: #f85149; }
+        .log-command { color: #d2a8ff; }
+
+        /* Options Grid */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-item:hover {
+            border-color: var(--accent);
+        }
+
+        .option-checkbox {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            accent-color: var(--accent);
+        }
+
+        .option-label {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .option-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Progress */
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 12px 0;
+            display: none;
+        }
+
+        .progress-bar.active {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        /* Result Preview */
+        .preview-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: -1px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .preview-tab {
+            padding: 8px 16px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preview-tab:hover {
+            color: var(--text-primary);
+        }
+
+        .preview-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .preview-panel {
+            display: none;
+        }
+
+        .preview-panel.active {
+            display: block;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            animation: slideIn 0.3s ease;
+            min-width: 280px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .toast-success { border-left: 3px solid var(--success); }
+        .toast-error { border-left: 3px solid var(--danger); }
+        .toast-info { border-left: 3px solid var(--accent); }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Responsive */
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .mobile-toggle {
+                display: block;
+            }
+            .content-area {
+                padding: 16px;
+            }
+        }
+
+        /* Tooltip */
+        [data-tooltip] {
+            position: relative;
+        }
+        [data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 4px 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            margin-bottom: 6px;
+        }
+        [data-tooltip]:hover::after {
+            opacity: 1;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: var(--font-mono);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            animation: modalIn 0.2s ease;
+        }
+
+        @keyframes modalIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 50vh;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        /* Keyboard shortcut badge */
+        .kbd {
+            display: inline-block;
+            padding: 2px 6px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-secondary);
+            box-shadow: 0 2px 0 var(--border-color);
+        }
+
+        /* Diff view */
+        .diff-line {
+            padding: 2px 8px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            display: flex;
+            gap: 12px;
+        }
+        .diff-add { background: rgba(63, 185, 80, 0.1); }
+        .diff-add::before { content: "+"; color: var(--success); min-width: 12px; }
+        .diff-del { background: rgba(248, 81, 73, 0.1); }
+        .diff-del::before { content: "-"; color: var(--danger); min-width: 12px; }
+        .diff-ctx { color: var(--text-muted); }
+        .diff-ctx::before { content: " "; min-width: 12px; }
+
+        /* Loading spinner */
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body data-theme="dark">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">&lt;/&gt;</div>
+                <div>
+                    <div class="sidebar-title">BundleCraft</div>
+                    <div class="sidebar-subtitle">v2.0.0</div>
+                </div>
+            </div>
+            
+            <nav class="nav-section">
+                <div class="nav-label">Operations</div>
+                <button class="nav-item active" onclick="switchTab('bundle')" data-tab="bundle">
+                    <span class="nav-icon">📦</span>
+                    <span>Bundle to HTML</span>
+                </button>
+                <button class="nav-item" onclick="switchTab('unbundle')" data-tab="unbundle">
+                    <span class="nav-icon">🗂️</span>
+                    <span>Unbundle Files</span>
+                </button>
+                
+                <div class="nav-label" style="margin-top: 20px;">Tools</div>
+                <button class="nav-item" onclick="switchTab('preview')" data-tab="preview">
+                    <span class="nav-icon">👁</span>
+                    <span>Live Preview</span>
+                </button>
+                <button class="nav-item" onclick="switchTab('history')" data-tab="history">
+                    <span class="nav-icon">🕐</span>
+                    <span>History</span>
+                </button>
+                
+                <div class="nav-label" style="margin-top: 20px;">Settings</div>
+                <button class="nav-item" onclick="switchTab('settings')" data-tab="settings">
+                    <span class="nav-icon">⚙️</span>
+                    <span>Preferences</span>
+                </button>
+                <button class="nav-item" onclick="switchTab('help')" data-tab="help">
+                    <span class="nav-icon">?</span>
+                    <span>Documentation</span>
+                </button>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">
+                    <span id="themeText">🌙 Dark Mode</span>
+                    <span class="kbd" id="themeShortcut">Ctrl+L</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+                    <div class="page-title">
+                        <span class="status-dot"></span>
+                        <span id="pageTitle">Bundle to Single HTML</span>
+                    </div>
+                </div>
+                <div class="top-actions">
+                    <button class="btn btn-sm" onclick="clearAll()" title="Clear all data">
+                        <span>🗑</span> Clear
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="showShortcuts()">
+                        <span>⌨</span> Shortcuts
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- BUNDLE SECTION -->
+                <section id="bundle" class="section active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="statFiles">0</div>
+                            <div class="stat-label">Files</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statSize">0 KB</div>
+                            <div class="stat-label">Total Size</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statStatus">Ready</div>
+                            <div class="stat-label">Status</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📁 Upload Source Files</div>
+                            <button class="btn btn-sm" onclick="document.getElementById('bundleInput').click()">Browse</button>
+                        </div>
+                        <div class="card-desc">
+                            Drop your HTML, CSS, and JavaScript files here. The app will automatically detect relationships and bundle them into a single self-contained HTML file.
+                        </div>
+                        
+                        <div class="drop-zone" id="bundleDropZone">
+                            <input type="file" class="file-input" id="bundleInput" multiple accept=".html,.htm,.css,.js,.txt" onchange="handleBundleFiles(this.files)">
+                            <div class="drop-zone-icon">📂</div>
+                            <div class="drop-zone-text">Drag & drop files here</div>
+                            <div class="drop-zone-hint">Supports: .html, .css, .js, .txt</div>
+                        </div>
+
+                        <div class="file-list" id="bundleFileList"></div>
+                        
+                        <div class="progress-bar" id="bundleProgress">
+                            <div class="progress-fill" id="bundleProgressFill"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">⚙️ Bundle Options</div>
+                        </div>
+                        <div class="options-grid">
+                            <label class="option-item">
+                                <input type="checkbox" class="option-checkbox" id="optMinify" checked>
+                                <div>
+                                    <span class="option-label">Minify Output</span>
+                                    <span class="option-desc">Remove unnecessary whitespace and comments to reduce file size</span>
+                                </div>
+                            </label>
+                            <label class="option-item">
+                                <input type="checkbox" class="option-checkbox" id="optBase64" checked>
+                                <div>
+                                    <span class="option-label">Base64 Assets</span>
+                                    <span class="option-desc">Inline images and fonts as base64 data URIs</span>
+                                </div>
+                            </label>
+                            <label class="option-item">
+                                <input type="checkbox" class="option-checkbox" id="optDefer" checked>
+                                <div>
+                                    <span class="option-label">Defer Scripts</span>
+                                    <span class="option-desc">Add defer attribute to inline scripts for better performance</span>
+                                </div>
+                            </label>
+                            <label class="option-item">
+                                <input type="checkbox" class="option-checkbox" id="optSourceMap">
+                                <div>
+                                    <span class="option-label">Source Map</span>
+                                    <span class="option-desc">Generate inline source map for debugging (increases size)</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="card" id="bundleResultCard" style="display: none;">
+                        <div class="card-header">
+                            <div class="card-title">📦 Bundled Output</div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-sm" onclick="copyBundleResult()">📋 Copy</button>
+                                <button class="btn btn-primary btn-sm" onclick="downloadBundle()">⬇ Download</button>
+                            </div>
+                        </div>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">HTML</span>
+                                <div class="code-actions">
+                                    <span class="file-size" id="bundleResultSize">0 bytes</span>
+                                </div>
+                            </div>
+                            <div class="code-body">
+                                <pre id="bundleResultCode">// Result will appear here...</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 24px;">
+                        <button class="btn btn-primary" onclick="processBundle()" id="bundleBtn" disabled>
+                            <span>🔨</span> Bundle Files
+                        </button>
+                    </div>
+                </section>
+
+                <!-- UNBUNDLE SECTION -->
+                <section id="unbundle" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📄 Upload Single HTML File</div>
+                            <button class="btn btn-sm" onclick="document.getElementById('unbundleInput').click()">Browse</button>
+                        </div>
+                        <div class="card-desc">
+                            Upload a bundled HTML file to extract embedded CSS and JavaScript into separate, well-organized files.
+                        </div>
+                        
+                        <div class="drop-zone" id="unbundleDropZone">
+                            <input type="file" class="file-input" id="unbundleInput" accept=".html,.htm" onchange="handleUnbundleFile(this.files[0])">
+                            <div class="drop-zone-icon">📄</div>
+                            <div class="drop-zone-text">Drop a bundled HTML file here</div>
+                            <div class="drop-zone-hint">Supports: .html, .htm</div>
+                        </div>
+
+                        <div class="file-list" id="unbundleFileList"></div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">⚙️ Extraction Options</div>
+                        </div>
+                        <div class="options-grid">
+                            <label class="option-item">
+                                <input type="checkbox" class="option-checkbox" id="optFormat" checked>
+                                <div>
+                                    <span class="option-label">Prettify Output</span>
+                                    <span class="option-desc">Format extracted code with proper indentation</span>
+                                </div>
+                            </label>
+                            <label class="option-item">
+                                <input type="checkbox" class="option-checkbox" id="optSeparate" checked>
+                                <div>
+                                    <span class="option-label">Separate Modules</span>
+                                    <span class="option-desc">Create individual files for each script/style block</span>
+                                </div>
+                            </label>
+                            <label class="option-item">
+                                <input type="checkbox" class="option-checkbox" id="optComments" checked>
+                                <div>
+                                    <span class="option-label">Add Comments</span>
+                                    <span class="option-desc">Insert source location comments in extracted files</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="card" id="unbundleResultCard" style="display: none;">
+                        <div class="card-header">
+                            <div class="card-title">🗂️ Extracted Files</div>
+                            <button class="btn btn-primary btn-sm" onclick="downloadAllUnbundled()">⬇ Download All (ZIP)</button>
+                        </div>
+                        <div id="unbundleResults"></div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 24px;">
+                        <button class="btn btn-primary" onclick="processUnbundle()" id="unbundleBtn" disabled>
+                            <span>🔧</span> Extract Files
+                        </button>
+                    </div>
+                </section>
+
+                <!-- PREVIEW SECTION -->
+                <section id="preview" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">👁️ Live Preview</div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-sm" onclick="refreshPreview()">🔄 Refresh</button>
+                                <button class="btn btn-sm" onclick="openPreviewFullscreen()">⛶ Fullscreen</button>
+                            </div>
+                        </div>
+                        <div class="card-desc">
+                            Preview your bundled HTML in a sandboxed iframe. Updates automatically when you generate new output.
+                        </div>
+                        <div style="border: 1px solid var(--border-color); border-radius: var(--radius); overflow: hidden; background: white;">
+                            <iframe id="previewFrame" style="width: 100%; height: 500px; border: none; display: block;"></iframe>
+                        </div>
+                        <div style="margin-top: 12px; padding: 12px; background: var(--bg-primary); border-radius: var(--radius); font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary);">
+                            <span style="color: var(--accent);">ℹ</span> Preview runs in a sandboxed iframe with no external network access.
+                        </div>
+                    </div>
+                </section>
+
+                <!-- HISTORY SECTION -->
+                <section id="history" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🕐 Conversion History</div>
+                            <button class="btn btn-danger btn-sm" onclick="clearHistory()">Clear History</button>
+                        </div>
+                        <div id="historyList">
+                            <div class="empty-state">
+                                <div class="empty-icon">🕐</div>
+                                <div>No conversions yet. Start bundling or unbundling files!</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SETTINGS SECTION -->
+                <section id="settings" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">⚙️ Preferences</div>
+                        </div>
+                        
+                        <div style="margin-bottom: 24px;">
+                            <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Appearance</h4>
+                            <div class="options-grid">
+                                <label class="option-item" onclick="toggleTheme()">
+                                    <input type="checkbox" class="option-checkbox" id="settingDarkMode" checked>
+                                    <div>
+                                        <span class="option-label">Dark Mode</span>
+                                        <span class="option-desc">Use dark terminal-inspired theme</span>
+                                    </div>
+                                </label>
+                                <label class="option-item">
+                                    <input type="checkbox" class="option-checkbox" id="settingAutoPreview" checked>
+                                    <div>
+                                        <span class="option-label">Auto Preview</span>
+                                        <span class="option-desc">Automatically update preview after conversion</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 24px;">
+                            <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Editor</h4>
+                            <div class="options-grid">
+                                <label class="option-item">
+                                    <input type="checkbox" class="option-checkbox" id="settingLineNumbers" checked>
+                                    <div>
+                                        <span class="option-label">Line Numbers</span>
+                                        <span class="option-desc">Show line numbers in code previews</span>
+                                    </div>
+                                </label>
+                                <label class="option-item">
+                                    <input type="checkbox" class="option-checkbox" id="settingWordWrap" checked>
+                                    <div>
+                                        <span class="option-label">Word Wrap</span>
+                                        <span class="option-desc">Wrap long lines in code blocks</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Advanced</h4>
+                            <div class="options-grid">
+                                <label class="option-item">
+                                    <input type="checkbox" class="option-checkbox" id="settingStrictMode">
+                                    <div>
+                                        <span class="option-label">Strict Mode</span>
+                                        <span class="option-desc">Fail on any parsing warning</span>
+                                    </div>
+                                </label>
+                                <label class="option-item">
+                                    <input type="checkbox" class="option-checkbox" id="settingKeepOriginal" checked>
+                                    <div>
+                                        <span class="option-label">Keep Originals</span>
+                                        <span class="option-desc">Preserve original file structure in history</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- HELP SECTION -->
+                <section id="help" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📚 Documentation</div>
+                        </div>
+                        
+                        <div style="margin-bottom: 24px;">
+                            <h3 style="margin-bottom: 12px; color: var(--accent);">Getting Started</h3>
+                            <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 16px;">
+                                BundleCraft helps you convert between single-file and multi-file web projects. 
+                                Whether you need to distribute a standalone HTML file or break one down for development, 
+                                we've got you covered.
+                            </p>
+                        </div>
+
+                        <div style="margin-bottom: 24px;">
+                            <h3 style="margin-bottom: 12px; color: var(--accent);">Bundling (Multi → Single)</h3>
+                            <div class="code-block" style="margin-bottom: 12px;">
+                                <div class="code-header"><span class="code-lang">Workflow</span></div>
+                                <div class="code-body">
+                                    <pre>1. Upload your HTML file (entry point)
+2. Upload linked CSS and JS files
+3. Configure options (minify, defer, etc.)
+4. Click "Bundle Files"
+5. Download your single self-contained HTML</pre>
+                                </div>
+                            </div>
+                            <p style="color: var(--text-secondary); line-height: 1.8;">
+                                The bundler automatically detects <code>&lt;link&gt;</code> and <code>&lt;script&gt;</code> tags 
+                                and replaces external references with inline content. It handles relative paths and 
+                                preserves the execution order of your scripts.
+                            </p>
+                        </div>
+
+                        <div style="margin-bottom: 24px;">
+                            <h3 style="margin-bottom: 12px; color: var(--accent);">Unbundling (Single → Multi)</h3>
+                            <div class="code-block" style="margin-bottom: 12px;">
+                                <div class="code-header"><span class="code-lang">Workflow</span></div>
+                                <div class="code-body">
+                                    <pre>1. Upload your bundled HTML file
+2. Choose extraction options
+3. Click "Extract Files"
+4. Download individual HTML, CSS, and JS files</pre>
+                                </div>
+                            </div>
+                            <p style="color: var(--text-secondary); line-height: 1.8;">
+                                The extractor identifies all <code>&lt;style&gt;</code> and <code>&lt;script&gt;</code> blocks, 
+                                separates them into dedicated files, and updates the HTML to reference them externally. 
+                                It preserves inline event handlers and critical CSS.
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 style="margin-bottom: 12px; color: var(--accent);">Keyboard Shortcuts</h3>
+                            <div style="display: grid; gap: 8px;">
+                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                                    <span>Switch Theme</span>
+                                    <span><span class="kbd">Ctrl</span> + <span class="kbd">L</span></span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                                    <span>Bundle Files</span>
+                                    <span><span class="kbd">Ctrl</span> + <span class="kbd">Enter</span></span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                                    <span>Clear All</span>
+                                    <span><span class="kbd">Ctrl</span> + <span class="kbd">Shift</span> + <span class="kbd">X</span></span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                                    <span>Toggle Sidebar</span>
+                                    <span><span class="kbd">Ctrl</span> + <span class="kbd">B</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Terminal Log -->
+    <div class="terminal" id="terminal" style="position: fixed; bottom: 0; left: 260px; right: 0; z-index: 90; display: none;">
+        <div class="terminal-header" onclick="toggleTerminal()">
+            <div class="terminal-dot t-red"></div>
+            <div class="terminal-dot t-yellow"></div>
+            <div class="terminal-dot t-green"></div>
+            <span class="terminal-title">Console Output</span>
+            <span style="margin-left: auto; color: var(--text-muted); font-size: 11px; cursor: pointer;">Click to toggle</span>
+        </div>
+        <div class="terminal-body" id="terminalBody">
+            <div class="log-entry">
+                <span class="log-time">22:50:00</span>
+                <span class="log-info">[INFO]</span>
+                <span>BundleCraft initialized. Ready for operations.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Title</h3>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                Content
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== STATE ====================
+        const state = {
+            bundleFiles: [],
+            unbundleFile: null,
+            bundleResult: null,
+            unbundleResults: [],
+            history: JSON.parse(localStorage.getItem('bundlecraft_history') || '[]'),
+            theme: localStorage.getItem('bundlecraft_theme') || 'dark',
+            terminalOpen: false
+        };
+
+        // ==================== INIT ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            setTheme(state.theme);
+            setupDragDrop();
+            setupKeyboard();
+            renderHistory();
+            log('System ready. Waiting for input...', 'info');
+        });
+
+        // ==================== THEME ====================
+        function setTheme(theme) {
+            state.theme = theme;
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('bundlecraft_theme', theme);
+            
+            const btn = document.getElementById('themeText');
+            const shortcut = document.getElementById('themeShortcut');
+            const checkbox = document.getElementById('settingDarkMode');
+            
+            if (theme === 'dark') {
+                btn.textContent = '🌙 Dark Mode';
+                shortcut.textContent = 'Ctrl+L';
+                if (checkbox) checkbox.checked = true;
+            } else {
+                btn.textContent = '☀️ Light Mode';
+                shortcut.textContent = 'Ctrl+L';
+                if (checkbox) checkbox.checked = false;
+            }
+        }
+
+        function toggleTheme() {
+            const newTheme = state.theme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+            log(`Theme switched to ${newTheme} mode`, 'info');
+        }
+
+        // ==================== NAVIGATION ====================
+        function switchTab(tabId) {
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.tab === tabId);
+            });
+            
+            // Update sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.toggle('active', section.id === tabId);
+            });
+            
+            // Update title
+            const titles = {
+                bundle: 'Bundle to Single HTML',
+                unbundle: 'Unbundle to Files',
+                preview: 'Live Preview',
+                history: 'Conversion History',
+                settings: 'Preferences',
+                help: 'Documentation'
+            };
+            document.getElementById('pageTitle').textContent = titles[tabId] || 'BundleCraft';
+            
+            // Refresh preview if switching to it
+            if (tabId === 'preview') refreshPreview();
+            
+            log(`Switched to ${tabId} view`, 'info');
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // ==================== DRAG & DROP ====================
+        function setupDragDrop() {
+            const zones = [
+                { id: 'bundleDropZone', handler: 'bundleInput' },
+                { id: 'unbundleDropZone', handler: 'unbundleInput' }
+            ];
+            
+            zones.forEach(({ id, handler }) => {
+                const zone = document.getElementById(id);
+                if (!zone) return;
+                
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('dragover');
+                });
+                
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('dragover');
+                });
+                
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('dragover');
+                    const input = document.getElementById(handler);
+                    input.files = e.dataTransfer.files;
+                    input.dispatchEvent(new Event('change'));
+                });
+            });
+        }
+
+        // ==================== BUNDLE LOGIC ====================
+        function handleBundleFiles(files) {
+            state.bundleFiles = Array.from(files);
+            renderBundleFileList();
+            updateBundleStats();
+            
+            const htmlFiles = state.bundleFiles.filter(f => f.name.match(/\.html?$/i));
+            if (htmlFiles.length === 0 && state.bundleFiles.length > 0) {
+                showToast('Warning: No HTML entry point detected. Add an .html file.', 'warning');
+                log('No HTML entry point found in uploaded files', 'warning');
+            } else {
+                log(`Loaded ${state.bundleFiles.length} file(s) for bundling`, 'success');
+            }
+            
+            document.getElementById('bundleBtn').disabled = state.bundleFiles.length === 0;
+        }
+
+        function renderBundleFileList() {
+            const list = document.getElementById('bundleFileList');
+            if (state.bundleFiles.length === 0) {
+                list.innerHTML = '';
+                return;
+            }
+            
+            list.innerHTML = state.bundleFiles.map((file, i) => {
+                const ext = file.name.split('.').pop().toLowerCase();
+                const badgeClass = ext === 'html' || ext === 'htm' ? 'badge-html' : 
+                                   ext === 'css' ? 'badge-css' : 
+                                   ext === 'js' ? 'badge-js' : 'badge-other';
+                const size = formatBytes(file.size);
+                
+                return `
+                    <div class="file-item">
+                        <div class="file-item-info">
+                            <span class="file-badge ${badgeClass}">${ext}</span>
+                            <span>${file.name}</span>
+                            <span class="file-size">${size}</span>
+                        </div>
+                        <button class="file-remove" onclick="removeBundleFile(${i})" title="Remove">×</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function removeBundleFile(index) {
+            state.bundleFiles.splice(index, 1);
+            renderBundleFileList();
+            updateBundleStats();
+            document.getElementById('bundleBtn').disabled = state.bundleFiles.length === 0;
+            log('File removed from bundle queue', 'info');
+        }
+
+        function updateBundleStats() {
+            const totalSize = state.bundleFiles.reduce((sum, f) => sum + f.size, 0);
+            document.getElementById('statFiles').textContent = state.bundleFiles.length;
+            document.getElementById('statSize').textContent = formatBytes(totalSize);
+            document.getElementById('statStatus').textContent = state.bundleFiles.length > 0 ? 'Ready' : 'Waiting';
+        }
+
+        async function processBundle() {
+            if (state.bundleFiles.length === 0) return;
+            
+            const btn = document.getElementById('bundleBtn');
+            const progress = document.getElementById('bundleProgress');
+            const fill = document.getElementById('bundleProgressFill');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Processing...';
+            progress.classList.add('active');
+            fill.style.width = '10%';
+            
+            log('Starting bundle process...', 'command');
+            
+            try {
+                // Read all files
+                const fileMap = new Map();
+                let htmlFile = null;
+                
+                for (let i = 0; i < state.bundleFiles.length; i++) {
+                    const file = state.bundleFiles[i];
+                    const content = await readFile(file);
+                    fileMap.set(file.name, { content, name: file.name });
+                    
+                    if (file.name.match(/\.html?$/i) && !htmlFile) {
+                        htmlFile = file.name;
+                    }
+                    
+                    fill.style.width = `${10 + ((i + 1) / state.bundleFiles.length) * 30}%`;
+                    log(`Read ${file.name} (${formatBytes(file.size)})`, 'info');
+                }
+                
+                if (!htmlFile) {
+                    throw new Error('No HTML entry point found. Please include at least one .html file.');
+                }
+                
+                fill.style.width = '50%';
+                log(`Using ${htmlFile} as entry point`, 'info');
+                
+                // Process HTML
+                let htmlContent = fileMap.get(htmlFile).content;
+                const dom = new DOMParser().parseFromString(htmlContent, 'text/html');
+                
+                // Inline CSS links
+                const cssLinks = dom.querySelectorAll('link[rel="stylesheet"]');
+                log(`Found ${cssLinks.length} CSS link(s)`, 'info');
+                
+                for (const link of cssLinks) {
+                    const href = link.getAttribute('href');
+                    if (!href) continue;
+                    
+                    const cssFile = findFile(fileMap, href);
+                    if (cssFile) {
+                        const style = dom.createElement('style');
+                        let css = cssFile.content;
+                        
+                        if (document.getElementById('optMinify').checked) {
+                            css = minifyCSS(css);
+                        }
+                        
+                        style.textContent = css;
+                        link.parentNode.replaceChild(style, link);
+                        log(`Inlined CSS: ${cssFile.name}`, 'success');
+                    } else {
+                        log(`CSS not found: ${href}`, 'warning');
+                    }
+                }
+                
+                fill.style.width = '70%';
+                
+                // Inline JS scripts
+                const scripts = dom.querySelectorAll('script[src]');
+                log(`Found ${scripts.length} external script(s)`, 'info');
+                
+                for (const script of scripts) {
+                    const src = script.getAttribute('src');
+                    if (!src) continue;
+                    
+                    const jsFile = findFile(fileMap, src);
+                    if (jsFile) {
+                        const newScript = dom.createElement('script');
+                        let js = jsFile.content;
+                        
+                        if (document.getElementById('optMinify').checked) {
+                            js = minifyJS(js);
+                        }
+                        
+                        if (document.getElementById('optDefer').checked) {
+                            newScript.defer = true;
+                        }
+                        
+                        newScript.textContent = js;
+                        script.parentNode.replaceChild(newScript, script);
+                        log(`Inlined JS: ${jsFile.name}`, 'success');
+                    } else {
+                        log(`JS not found: ${src}`, 'warning');
+                    }
+                }
+                
+                fill.style.width = '90%';
+                
+                // Serialize
+                let result = new XMLSerializer().serializeToString(dom);
+                
+                // Fix XMLSerializer quirks for HTML5
+                result = result.replace(/<html xmlns="[^"]*">/i, '<html>');
+                result = result.replace(/<\/?body>/gi, match => match.toLowerCase());
+                result = result.replace(/<\/?head>/gi, match => match.toLowerCase());
+                
+                // Add doctype if missing
+                if (!result.trim().startsWith('<!DOCTYPE')) {
+                    result = '<!DOCTYPE html>\n' + result;
+                }
+                
+                // Final minification pass on HTML
+                if (document.getElementById('optMinify').checked) {
+                    result = minifyHTML(result);
+                }
+                
+                state.bundleResult = result;
+                
+                fill.style.width = '100%';
+                
+                // Show result
+                document.getElementById('bundleResultCard').style.display = 'block';
+                document.getElementById('bundleResultCode').textContent = result.length > 5000 ? result.substring(0, 5000) + '\n\n... (' + (result.length - 5000) + ' more chars)' : result;
+                document.getElementById('bundleResultSize').textContent = formatBytes(new Blob([result]).size);
+                
+                // Add to history
+                addToHistory('bundle', htmlFile, state.bundleFiles.length, new Blob([result]).size);
+                
+                // Auto preview
+                if (document.getElementById('settingAutoPreview')?.checked) {
+                    refreshPreview();
+                }
+                
+                log(`Bundle complete! Output: ${formatBytes(new Blob([result]).size)}`, 'success');
+                showToast('Bundle created successfully!', 'success');
+                
+                // Scroll to result
+                document.getElementById('bundleResultCard').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (err) {
+                log(`Bundle failed: ${err.message}`, 'error');
+                showToast(err.message, 'error');
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>🔨</span> Bundle Files';
+                setTimeout(() => progress.classList.remove('active'), 1000);
+            }
+        }
+
+        function findFile(fileMap, href) {
+            // Try exact match
+            if (fileMap.has(href)) return fileMap.get(href);
+            
+            // Try basename match
+            const basename = href.split('/').pop();
+            for (const [name, file] of fileMap) {
+                if (name === basename || name.endsWith('/' + basename)) {
+                    return file;
+                }
+            }
+            
+            // Try case-insensitive
+            const lowerHref = href.toLowerCase();
+            for (const [name, file] of fileMap) {
+                if (name.toLowerCase() === lowerHref || name.toLowerCase().endsWith('/' + lowerHref)) {
+                    return file;
+                }
+            }
+            
+            return null;
+        }
+
+        // ==================== UNBUNDLE LOGIC ====================
+        function handleUnbundleFile(file) {
+            if (!file) return;
+            state.unbundleFile = file;
+            
+            const list = document.getElementById('unbundleFileList');
+            list.innerHTML = `
+                <div class="file-item">
+                    <div class="file-item-info">
+                        <span class="file-badge badge-html">html</span>
+                        <span>${file.name}</span>
+                        <span class="file-size">${formatBytes(file.size)}</span>
+                    </div>
+                    <button class="file-remove" onclick="clearUnbundle()" title="Remove">×</button>
+                </div>
+            `;
+            
+            document.getElementById('unbundleBtn').disabled = false;
+            log(`Loaded ${file.name} for extraction`, 'info');
+        }
+
+        function clearUnbundle() {
+            state.unbundleFile = null;
+            document.getElementById('unbundleFileList').innerHTML = '';
+            document.getElementById('unbundleBtn').disabled = true;
+            document.getElementById('unbundleResultCard').style.display = 'none';
+            log('Unbundle file cleared', 'info');
+        }
+
+        async function processUnbundle() {
+            if (!state.unbundleFile) return;
+            
+            const btn = document.getElementById('unbundleBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Extracting...';
+            
+            log('Starting extraction process...', 'command');
+            
+            try {
+                const content = await readFile(state.unbundleFile);
+                const dom = new DOMParser().parseFromString(content, 'text/html');
+                
+                const results = [];
+                const prettify = document.getElementById('optFormat').checked;
+                const addComments = document.getElementById('optComments').checked;
+                const separate = document.getElementById('optSeparate').checked;
+                
+                // Extract styles
+                const styles = dom.querySelectorAll('style');
+                log(`Found ${styles.length} style block(s)`, 'info');
+                
+                if (separate && styles.length > 0) {
+                    let cssContent = '';
+                    styles.forEach((style, i) => {
+                        const css = style.textContent;
+                        if (addComments) cssContent += `/* Extracted from inline style block #${i + 1} */\n`;
+                        cssContent += css + '\n\n';
+                        style.parentNode.removeChild(style);
+                    });
+                    
+                    if (prettify) cssContent = prettifyCSS(cssContent);
+                    
+                    results.push({
+                        name: 'styles.css',
+                        type: 'css',
+                        content: cssContent
+                    });
+                    
+                    // Add link tag
+                    const link = dom.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = 'styles.css';
+                    dom.head.appendChild(link);
+                    
+                    log('Extracted styles.css', 'success');
+                }
+                
+                // Extract scripts
+                const scripts = dom.querySelectorAll('script:not([src])');
+                log(`Found ${scripts.length} inline script(s)`, 'info');
+                
+                if (separate && scripts.length > 0) {
+                    let jsContent = '';
+                    scripts.forEach((script, i) => {
+                        const js = script.textContent;
+                        if (addComments) jsContent += `// Extracted from inline script block #${i + 1}\n`;
+                        jsContent += js + '\n\n';
+                        script.parentNode.removeChild(script);
+                    });
+                    
+                    if (prettify) jsContent = prettifyJS(jsContent);
+                    
+                    results.push({
+                        name: 'scripts.js',
+                        type: 'js',
+                        content: jsContent
+                    });
+                    
+                    // Add script tag
+                    const newScript = dom.createElement('script');
+                    newScript.src = 'scripts.js';
+                    dom.body.appendChild(newScript);
+                    
+                    log('Extracted scripts.js', 'success');
+                }
+                
+                // Clean up HTML
+                let htmlContent = new XMLSerializer().serializeToString(dom);
+                htmlContent = htmlContent.replace(/<html xmlns="[^"]*">/i, '<html>');
+                if (!htmlContent.trim().startsWith('<!DOCTYPE')) {
+                    htmlContent = '<!DOCTYPE html>\n' + htmlContent;
+                }
+                
+                if (prettify) htmlContent = prettifyHTML(htmlContent);
+                
+                results.unshift({
+                    name: 'index.html',
+                    type: 'html',
+                    content: htmlContent
+                });
+                
+                state.unbundleResults = results;
+                
+                // Display results
+                const container = document.getElementById('unbundleResults');
+                container.innerHTML = results.map(file => `
+                    <div class="code-block" style="margin-bottom: 16px;">
+                        <div class="code-header">
+                            <span class="code-lang">${file.type.toUpperCase()}</span>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <span class="file-size">${formatBytes(new Blob([file.content]).size)}</span>
+                                <button class="btn btn-sm" onclick="downloadFile('${file.name}', \`${escapeHtml(file.content)}\`)">⬇</button>
+                                <button class="btn btn-sm" onclick="copyText(\`${escapeHtml(file.content)}\`)">📋</button>
+                            </div>
+                        </div>
+                        <div class="code-body">
+                            <pre>${escapeHtml(file.content.length > 3000 ? file.content.substring(0, 3000) + '\n\n... (' + (file.content.length - 3000) + ' more chars)' : file.content)}</pre>
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('unbundleResultCard').style.display = 'block';
+                
+                addToHistory('unbundle', state.unbundleFile.name, 1, 
+                    results.reduce((sum, f) => sum + new Blob([f.content]).size, 0));
+                
+                log(`Extraction complete! ${results.length} file(s) created`, 'success');
+                showToast('Files extracted successfully!', 'success');
+                
+                document.getElementById('unbundleResultCard').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (err) {
+                log(`Extraction failed: ${err.message}`, 'error');
+                showToast(err.message, 'error');
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>🔧</span> Extract Files';
+            }
+        }
+
+        // ==================== MINIFIERS / PRETTIFIERS ====================
+        function minifyHTML(html) {
+            return html
+                .replace(/>\s+</g, '><')
+                .replace(/\s{2,}/g, ' ')
+                .replace(/<!--(?!\[if)[\s\S]*?-->/g, '')
+                .trim();
+        }
+
+        function minifyCSS(css) {
+            return css
+                .replace(/\/\*[\s\S]*?\*\//g, '')
+                .replace(/\s{2,}/g, ' ')
+                .replace(/\s*([{}:;,])\s*/g, '$1')
+                .replace(/;}/g, '}')
+                .trim();
+        }
+
+        function minifyJS(js) {
+            // Simple minification - remove comments and extra whitespace
+            return js
+                .replace(/\/\/.*$/gm, '')
+                .replace(/\/\*[\s\S]*?\*\//g, '')
+                .replace(/\s{2,}/g, ' ')
+                .trim();
+        }
+
+        function prettifyHTML(html) {
+            let indent = 0;
+            const lines = [];
+            const tokens = html.split(/(<\/?[^>]+>)/g).filter(Boolean);
+            
+            for (const token of tokens) {
+                if (token.match(/^<\/\w/)) indent = Math.max(0, indent - 1);
+                if (token.trim()) {
+                    lines.push('  '.repeat(indent) + token.trim());
+                }
+                if (token.match(/^<\w[^>]*[^\/]>$/) && !token.match(/<br|hr|img|input|meta|link/i)) indent++;
+            }
+            
+            return lines.join('\n');
+        }
+
+        function prettifyCSS(css) {
+            return css
+                .replace(/([{;}])/g, '$1\n')
+                .replace(/}/g, '\n}\n')
+                .replace(/\n\s*\n/g, '\n')
+                .replace(/^\s+/gm, match => '  '.repeat(Math.floor(match.length / 2)));
+        }
+
+        function prettifyJS(js) {
+            let indent = 0;
+            const lines = js.split('\n').map(line => {
+                line = line.trim();
+                if (line.match(/^[}\]]/)) indent = Math.max(0, indent - 1);
+                const result = '  '.repeat(indent) + line;
+                if (line.match(/[{\[;]$/)) indent++;
+                return result;
+            });
+            return lines.join('\n');
+        }
+
+        // ==================== DOWNLOAD / COPY ====================
+        function downloadBundle() {
+            if (!state.bundleResult) return;
+            downloadFile('bundled.html', state.bundleResult);
+            log('Bundle downloaded as bundled.html', 'success');
+        }
+
+        function copyBundleResult() {
+            if (!state.bundleResult) return;
+            copyText(state.bundleResult);
+        }
+
+        function downloadFile(filename, content) {
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadAllUnbundled() {
+            if (state.unbundleResults.length === 0) return;
+            
+            // Create a simple zip-like experience by downloading sequentially
+            state.unbundleResults.forEach((file, i) => {
+                setTimeout(() => downloadFile(file.name, file.content), i * 200);
+            });
+            
+            log('All files downloaded', 'success');
+            showToast('Files downloaded!', 'success');
+        }
+
+        async function copyText(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('Copied to clipboard!', 'success');
+            } catch (err) {
+                // Fallback
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast('Copied to clipboard!', 'success');
+            }
+        }
+
+        // ==================== PREVIEW ====================
+        function refreshPreview() {
+            const frame = document.getElementById('previewFrame');
+            if (state.bundleResult) {
+                const blob = new Blob([state.bundleResult], { type: 'text/html' });
+                frame.src = URL.createObjectURL(blob);
+                log('Preview refreshed', 'info');
+            } else {
+                frame.srcdoc = `
+                    <div style="display:flex;align-items:center;justify-content:center;height:100%;font-family:monospace;color:#666;">
+                        <div style="text-align:center;">
+                            <div style="font-size:48px;margin-bottom:16px;">👁</div>
+                            <div>No preview available yet.</div>
+                            <div style="font-size:12px;margin-top:8px;">Bundle some files first!</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function openPreviewFullscreen() {
+            const frame = document.getElementById('previewFrame');
+            if (state.bundleResult) {
+                const win = window.open();
+                win.document.write(state.bundleResult);
+                win.document.close();
+            } else {
+                showToast('Nothing to preview yet', 'warning');
+            }
+        }
+
+        // ==================== HISTORY ====================
+        function addToHistory(type, filename, inputCount, outputSize) {
+            const entry = {
+                id: Date.now(),
+                type,
+                filename,
+                inputCount,
+                outputSize,
+                timestamp: new Date().toISOString()
+            };
+            
+            state.history.unshift(entry);
+            if (state.history.length > 50) state.history.pop();
+            
+            localStorage.setItem('bundlecraft_history', JSON.stringify(state.history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('historyList');
+            
+            if (state.history.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🕐</div>
+                        <div>No conversions yet. Start bundling or unbundling files!</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = state.history.map(entry => `
+                <div class="file-item" style="margin-bottom: 8px;">
+                    <div class="file-item-info">
+                        <span class="file-badge ${entry.type === 'bundle' ? 'badge-html' : 'badge-css'}">
+                            ${entry.type === 'bundle' ? 'BUNDLE' : 'EXTRACT'}
+                        </span>
+                        <span>${entry.filename}</span>
+                        <span class="file-size">${formatBytes(entry.outputSize)}</span>
+                        <span class="file-size">${new Date(entry.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function clearHistory() {
+            state.history = [];
+            localStorage.removeItem('bundlecraft_history');
+            renderHistory();
+            log('History cleared', 'info');
+        }
+
+        // ==================== TERMINAL / LOGGING ====================
+        function log(message, type = 'info') {
+            const body = document.getElementById('terminalBody');
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+            
+            const typeClass = {
+                info: 'log-info',
+                success: 'log-success',
+                warning: 'log-warning',
+                error: 'log-error',
+                command: 'log-command'
+            }[type] || 'log-info';
+            
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `
+                <span class="log-time">${time}</span>
+                <span class="${typeClass}">[${type.toUpperCase()}]</span>
+                <span>${escapeHtml(message)}</span>
+            `;
+            
+            body.appendChild(entry);
+            body.scrollTop = body.scrollHeight;
+            
+            // Show terminal briefly on important logs
+            if (type === 'error' || type === 'success') {
+                const terminal = document.getElementById('terminal');
+                terminal.style.display = 'block';
+            }
+        }
+
+        function toggleTerminal() {
+            const terminal = document.getElementById('terminal');
+            state.terminalOpen = !state.terminalOpen;
+            terminal.style.display = state.terminalOpen ? 'block' : 'none';
+        }
+
+        // ==================== UTILITIES ====================
+        function readFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            const icons = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
+            toast.innerHTML = `<span style="font-size: 16px;">${icons[type]}</span> <span>${escapeHtml(message)}</span>`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        function clearAll() {
+            state.bundleFiles = [];
+            state.unbundleFile = null;
+            state.bundleResult = null;
+            state.unbundleResults = [];
+            
+            document.getElementById('bundleFileList').innerHTML = '';
+            document.getElementById('unbundleFileList').innerHTML = '';
+            document.getElementById('bundleResultCard').style.display = 'none';
+            document.getElementById('unbundleResultCard').style.display = 'none';
+            document.getElementById('bundleBtn').disabled = true;
+            document.getElementById('unbundleBtn').disabled = true;
+            
+            updateBundleStats();
+            log('All data cleared', 'info');
+            showToast('All data cleared', 'info');
+        }
+
+        // ==================== KEYBOARD SHORTCUTS ====================
+        function setupKeyboard() {
+            document.addEventListener('keydown', (e) => {
+                // Ctrl/Cmd + L = Toggle theme
+                if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+                    e.preventDefault();
+                    toggleTheme();
+                }
+                
+                // Ctrl/Cmd + Enter = Process current tab
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    const activeTab = document.querySelector('.section.active').id;
+                    if (activeTab === 'bundle') processBundle();
+                    else if (activeTab === 'unbundle') processUnbundle();
+                }
+                
+                // Ctrl/Cmd + Shift + X = Clear all
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'X') {
+                    e.preventDefault();
+                    clearAll();
+                }
+                
+                // Ctrl/Cmd + B = Toggle sidebar
+                if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+                    e.preventDefault();
+                    toggleSidebar();
+                }
+            });
+        }
+
+        function showShortcuts() {
+            document.getElementById('modalTitle').textContent = 'Keyboard Shortcuts';
+            document.getElementById('modalBody').innerHTML = `
+                <div style="display: grid; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                        <span>Toggle Theme</span>
+                        <span><span class="kbd">Ctrl</span> + <span class="kbd">L</span></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                        <span>Bundle / Extract</span>
+                        <span><span class="kbd">Ctrl</span> + <span class="kbd">Enter</span></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                        <span>Clear All</span>
+                        <span><span class="kbd">Ctrl</span> + <span class="kbd">Shift</span> + <span class="kbd">X</span></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                        <span>Toggle Sidebar</span>
+                        <span><span class="kbd">Ctrl</span> + <span class="kbd">B</span></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                        <span>Close Modal</span>
+                        <span><span class="kbd">Esc</span></span>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        // Close modal on overlay click
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modal')) closeModal();
+        });
+
+        // Close modal on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.mobile-toggle');
+            if (window.innerWidth <= 768 && 
+                sidebar.classList.contains('open') && 
+                !sidebar.contains(e.target) && 
+                e.target !== toggle) {
+                sidebar.classList.remove('open');
+            }
+        });
+    </script>
+</body>
+</html>
