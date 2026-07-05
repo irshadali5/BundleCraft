@@ -1,20 +1,20 @@
-&lt;p align="center"&gt;
-  &lt;img src="https://img.shields.io/badge/version-2.0.0-58a6ff?style=flat-square" alt="Version"&gt;
-  &lt;img src="https://img.shields.io/badge/license-MIT-3fb950?style=flat-square" alt="License"&gt;
-  &lt;img src="https://img.shields.io/badge/platform-Web-8b949e?style=flat-square" alt="Platform"&gt;
-  &lt;img src="https://img.shields.io/badge/pure-vanilla_js-f0db4f?style=flat-square" alt="Pure JS"&gt;
-&lt;/p&gt;
+<p align="center">
+  <img src="https://img.shields.io/badge/version-2.0.0-58a6ff?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/license-MIT-3fb950?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/platform-Web-8b949e?style=flat-square" alt="Platform">
+  <img src="https://img.shields.io/badge/pure-vanilla_js-f0db4f?style=flat-square" alt="Pure JS">
+</p>
 
-&lt;h1 align="center"&gt;BundleCraft&lt;/h1&gt;
-&lt;p align="center"&gt;&lt;em&gt;A terminal-inspired, zero-dependency web tool for bundling and unbundling HTML projects.&lt;/em&gt;&lt;/p&gt;
+<h1 align="center">BundleCraft</h1>
+<p align="center"><em>A terminal-inspired, zero-dependency web tool for bundling and unbundling HTML projects.</em></p>
 
-&lt;p align="center"&gt;
-  &lt;a href="#features"&gt;Features&lt;/a&gt; •
-  &lt;a href="#quick-start"&gt;Quick Start&lt;/a&gt; •
-  &lt;a href="#usage"&gt;Usage&lt;/a&gt; •
-  &lt;a href="#keyboard-shortcuts"&gt;Shortcuts&lt;/a&gt; •
-  &lt;a href="#architecture"&gt;Architecture&lt;/a&gt;
-&lt;/p&gt;
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#keyboard-shortcuts">Shortcuts</a> •
+  <a href="#architecture">Architecture</a>
+</p>
 
 ---
 
@@ -23,7 +23,7 @@
 | Capability | Description |
 |------------|-------------|
 | **📦 Bundle to Single HTML** | Merge `.html`, `.css`, and `.js` files into one self-contained, portable HTML file |
-| **🗂️ Unbundle to Files** | Extract inline `&lt;style&gt;` and `&lt;script&gt;` blocks into separate, well-organized source files |
+| **🗂️ Unbundle to Files** | Extract inline `<style>` and `<script>` blocks into separate, well-organized source files |
 | **🖱️ Drag & Drop** | Intuitive drag-and-drop interface with visual hover states and file type detection |
 | **⚡ Minification** | Optional CSS / JS / HTML minification to squeeze every byte out of your output |
 | **🎨 Prettification** | Reverse mode: auto-format extracted code with clean indentation and structure |
@@ -41,13 +41,13 @@ No build step. No dependencies. No server required.
 
 ```bash
 # 1. Save the application
-curl -o bundlecraft.html &lt;url&gt;
+curl -o bundlecraft.html <url>
 
 # 2. Open in your browser
 open bundlecraft.html        # macOS
 xdg-open bundlecraft.html    # Linux
 start bundlecraft.html       # Windows
-
+Or simply double-click the file. It runs entirely in your browser using the File API and DOMParser — zero network calls, zero external assets.
 📖 Usage
 Bundling (Multi-File → Single HTML)
 Navigate to Bundle to HTML in the sidebar
